@@ -17,7 +17,8 @@ jobs:
         run: npm ci
       - name: Run tests
         run: npm test
-  deploy:
+  deploy: 
+    needs: test # ensure that the test job is completed before running the deploy job  
     runs-on: ubuntu-latest
     steps:
       - name: Get code

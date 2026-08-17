@@ -1,0 +1,13 @@
+name: Output Information
+on: workflow_dispatch 
+jobs:
+    output:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Output github context
+              run: | 
+                  echo "${{toJSON(github)}}" 
+                  echo "this is the date $(date)" 
+                  echo "this is the date $(date +%Y-%m-%d)" 
+                  echo "this is the environment variable GITHUB_REF: $GITHUB_REF"
+              
