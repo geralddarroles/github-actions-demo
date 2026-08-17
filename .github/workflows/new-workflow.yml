@@ -1,0 +1,24 @@
+name: Test Project
+on:
+  push
+  # pull_request:
+  #   types: [opened]
+  #   branches:
+  #     - main
+  #     - staging
+  #     - development
+  # actions in a workflow -  jobs that are repeatedly done
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+      - uses: actions/checkout@v7 # grabs the data
+      - name: Setup nodejs
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
