@@ -1,0 +1,92 @@
+# Step by step guide to create github actions
+name: Deploy website
+# when does it run - only when pushing to main 
+on:
+  push: 
+      branches: 
+        - main 
+# global env available to all jobs in this workflow 
+env:
+  MONGO_DB_SECRET_KEY:  SAMPLE-123456  
+  MY_SECRET: ${{ secrets.MY_SECRET }} # access a repository secret 
+  MY_ENV_VAR: ${{ vars.MY_VARIABLE }}  # access a repository env, making this not available for this workflow 
+
+# Create items to be cached 
+# caching dependencies, re runs only after a change in the package-lock.json file 
+x-cache-node-modules: &cache-node-modules
+        name: Cache node modules 
+        uses: actions/cache@v3
+        with: 
+          path: node_modules
+          key: node_modules_${{hashFiles('**/package-lock.json') }}
+
+
+jobs:
+  test:
+   # job test env only  
+    env:
+     MONGO_DB_SECRET_KEY_2:  SAMPLE-123456 # only available in this job 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo environment variable
+        run: echo $MONGO_DB_SECRET_KEY 
+      - name: Echo environment variable-2
+        run: echo ${{ env.MONGO_DB_SECRET_KEY }} 
+  # Retrieves code for the job 
+      - name: Get code
+        uses: actions/checkout@v3
+      - *cache-node-modules
+      - name: Install dependencies 
+    # only run this step if there cache is true and updated 
+        run: npm ci 
+        if: steps.cache.outpurs.cache-hit != "true"
+      - name: Lint code
+        run: npm run lint
+      - name: Test code
+        run: npm run test 
+        id: test-step # this id can be used to reference the output of this step in other steps
+      - name: Upload test report  
+        # failure() catch all fails from above 
+        if: failure() && steps.test-step.outcome == "failure" # only upload if the test step is successful 
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report 
+          path: test.json 
+
+# builds artifacts, i.e. produce a build of the project 
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - *cache-node-modules
+      - name: Get code
+        uses: actions/checkout@v3
+        # uploading artifcats to be used in the deploy job 
+      - name: upload build artifacts 
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files 
+          path: dist 
+
+  deploy:
+    # specifies that the deploy job will only run after the build job is completed 
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name:  Get build artificats 
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-files 
+      - name : Output contents
+        run: ls 
+      - name: Deploy 
+        run: echo "Deploying website..."
+  report: 
+    runs-on: ubuntu-latest
+    if: failure() # catch all failure  
+    # the needs must include all jobs you want to capture by the failure 
+    needs: [test, build, deploy] # only run this job if the above jobs have completed 
+    steps:
+      - name: Test if check
+        runs-on: ubuntu-latest
+        run: echo "this is a test"
