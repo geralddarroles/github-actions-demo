@@ -1,0 +1,32 @@
+name: Docker with Github Actions
+on: push
+jobs:
+  test:
+    environment: testing
+    runs-on: ubuntu-latest 
+    container:   # select the image of your docker 
+      image: node:16
+      # environment variables that your image can use  
+      services:
+        mongodb:
+          image: mongo
+          env: 
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: example
+      env: 
+        MONGO_DB_SECRET_KEY:  SAMPLE-123456
+    steps:
+      - name: Echo environment variable
+        run: echo $MONGO_DB_SECRET_KEY 
+      - name: Echo environment variable-2
+        run: echo ${{ env.MONGO_DB_SECRET_KEY }} 
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
+      - name: Test code
+        run: npm test
+
+      
