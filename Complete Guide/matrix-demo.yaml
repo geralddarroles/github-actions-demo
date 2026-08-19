@@ -1,13 +1,19 @@
 name: Matrix Demo
 on: push 
-jobs:
+jobs: 
+  continue-on-error: true # runs all the job in the matrix even if one fails. 
+
   build:
     strategy: 
        matrix:
+       
          # add the matrix values here
-         node-version: [18, 20]
-         operating-system: [ubuntu-latest, windows-latest, macos-latest] 
-       runs-on: ${{ matrix.operating-system }}  # does a map of all the values in the operating system and runs the job below
+        node-version: [18, 20]
+        operating-system: [ubuntu-latest, windows-latest, macos-latest] 
+       runs-on: ${{ matrix.operating-system }} 
+       include:  # make an exclusive combination for this 
+          - node-version: 18
+            operating-system: ubuntu-latest
        steps:
         - name: Get code
           uses: actions/checkout@v3

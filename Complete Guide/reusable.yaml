@@ -1,0 +1,30 @@
+name: Reusable Deploy
+on: 
+  workflow_call: # called by other workflows 
+    artifact-name: 
+      description: "Name of the artifact to download"
+      required: true 
+      default: dist-files 
+      type: string
+    secrets:
+      some-secret: 
+        required: false
+    outputs: 
+      result: 
+        description: "Result of the deployment operation"
+        value: ${{jobs.deploy.outputs.outcome}}
+jobs:
+  deploy:
+    outputs:
+      outcome:${{steps.set-result.outputs.step-result}}
+    steps:
+      - name: Get Code
+        uses: actions/checkout@v3 
+        with:
+          #name space inputs is the input from other workflow 
+          name: ${{ inputs.artifact-name }} # the name of the workflow that called this reusable workflow 
+      - name: Deploy
+        run: echo "Deploying website..." 
+      - name: Set Result output
+        id: set-result 
+        run: echo "::set-output name=step-result::success"

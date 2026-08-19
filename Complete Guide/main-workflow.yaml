@@ -82,6 +82,23 @@ jobs:
         run: ls 
       - name: Deploy 
         run: echo "Deploying website..."
+
+# Reusable workflow with inputs, secrets, and output 
+  deploy-reusable:
+    needs: build
+    uses: ./.github/workflows/reusable.yaml # call the reusable workflow 
+    with: 
+      artifact-name: dist-files  
+    secrets:
+      some-secrets ${{ secrets.MY_SECRET }} # pass a secret to the reusable workflow
+  print-deploy-result:
+    needs: deploy-reusable
+    runs-on: ubuntu-latest
+    steps: 
+    - name: print deploy output
+      run: echo "${{needs.deploy}}" 
+
+#conditional 
   report: 
     runs-on: ubuntu-latest
     if: failure() # catch all failure  
