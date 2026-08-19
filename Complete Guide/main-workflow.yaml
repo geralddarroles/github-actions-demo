@@ -39,10 +39,11 @@ jobs:
       - name: Install dependencies 
     # only run this step if there cache is true and updated 
         run: npm ci 
-        if: steps.cache.outpurs.cache-hit != "true"
+        if: steps.cache.outputs.cache-hit != "true"
       - name: Lint code
         run: npm run lint
-      - name: Test code
+      - name: Test code 
+        continue-on-error: true # continue running the job even after a failure in the step 
         run: npm run test 
         id: test-step # this id can be used to reference the output of this step in other steps
       - name: Upload test report  
