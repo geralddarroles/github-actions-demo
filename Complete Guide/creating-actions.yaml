@@ -1,0 +1,30 @@
+# Three types of custom actions
+# Javascript action, Docker Actions, Composite Actions
+
+# Sample of a composite github actions
+# Composite actions can be used as a an independent repo 
+
+name: "Get & Cache dependencies"
+description: "Get and cache dependencies action"
+runs: 
+# define what kind of actions is this 
+  action: "composite"
+  steps: 
+    - name: Cache Dependencies
+      id: cache
+      uses: actions/cache@v3 
+      with: 
+        path: node_modules
+        key: node_modules_${{hashFiles('**/package-lock.json') }} 
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != "true"
+      run: npm ci 
+      shell: bash # must specify what shell to use
+
+# To use this action, you can reference it in your workflow file
+# - name: Load and cache dependencies
+#   uses: ./path/to/this/action # must always use root as starting point
+
+
+
+            
