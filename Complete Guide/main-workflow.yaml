@@ -108,3 +108,37 @@ jobs:
       - name: Test if check
         runs-on: ubuntu-latest
         run: echo "this is a test"
+
+  caching-with-composite-action-sample:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load and cache dependencies
+        uses: ./path/to/this/action # must always use root as starting point
+        # check creating-actions.yaml file for reference 
+        with:
+          caching: true
+      - name: Output information
+        run: echo "Cache used ${{steps.cache-dependencies.outputs.used-cache}}"
+  information:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: ./.github/actions/deploy-s3-javascript 
+
+  javascript-action:
+    runs-on: ubuntu-latest
+    id: "js-deploy"
+    steps:
+      # you must checkout the code before using it since this is in the same repo 
+      # if the action is in a separate repo, you can remove the get code step 
+      - name: Get code
+        uses: actions/checkout@v3 
+      - name: Run javascript action
+        uses: ./.github/actions/deploy-s3-javascript
+      - name: Output information
+        run: echo "Website URL ${{steps.js-deploy.outputs.website-url}}"
+      
+
+ 

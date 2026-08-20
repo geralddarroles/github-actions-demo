@@ -6,11 +6,21 @@
 
 name: "Get & Cache dependencies"
 description: "Get and cache dependencies action"
+inputs: 
+  caching:
+    description: "Whether to cache dependencies or not"
+    required: false
+    default: true # default value if user did not provide 
+outputs:
+  used-cache:
+    description: "Whether the cache was used or not"
+    value: ${{steps.cache.outputs.cache-hit}} # this is the output of the cache step
 runs: 
 # define what kind of actions is this 
   action: "composite"
   steps: 
     - name: Cache Dependencies
+      if: inputs.caching == "true"   # caching is defined in the inputs section 
       id: cache
       uses: actions/cache@v3 
       with: 
@@ -18,13 +28,24 @@ runs:
         key: node_modules_${{hashFiles('**/package-lock.json') }} 
     - name: Install dependencies
       if: steps.cache.outputs.cache-hit != "true"
-      run: npm ci 
+      run: | 
+        npm ci
+        echo "::set-output name=cache::'${{inputs.caching}}" 
       shell: bash # must specify what shell to use
+
+# here a custom javascript action is called
+    - name: Custom Action Deploy site with js 
+      uses: ./.github/actions/deploy-s3-javascript 
+      env: 
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      with:
+        bucket: gha-custom-action-hosting
+        dist-folder: ./dist 
 
 # To use this action, you can reference it in your workflow file
 # - name: Load and cache dependencies
 #   uses: ./path/to/this/action # must always use root as starting point
-
 
 
             
